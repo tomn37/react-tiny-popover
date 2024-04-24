@@ -84,15 +84,41 @@ export const usePopover = ({
         const finalTop = Math.round(parentRect.top + inputTop - scoutRect.top);
 
         popoverRef.current.style.transform = `translate(${finalLeft}px, ${finalTop}px)`;
+        const isExhausted = positionIndex === positions.length;
+        const position = isExhausted ? positions[0] : positions[positionIndex];
+        const initialPopoverRect = createRect({
+          left: finalLeft,
+          top: finalTop,
+          width: popoverRect.width,
+          height: popoverRect.height,
+        });
+        const { rect: newPopoverRect, boundaryViolation } = getNewPopoverRect(
+          {
+            align,
+            boundaryRect,
+            childRect,
+            padding,
+            popoverRect: initialPopoverRect,
+            position,
+            reposition,
+          },
+          boundaryInset,
+        );
+
+        if (boundaryViolation && reposition && !isExhausted) {
+          positionPopover({
+            positionIndex: positionIndex + 1,
+            childRect,
+            popoverRect,
+            parentRect,
+            boundaryRect,
+          });
+          return;
+        }
 
         onPositionPopover({
           childRect,
-          popoverRect: createRect({
-            left: finalLeft,
-            top: finalTop,
-            width: popoverRect.width,
-            height: popoverRect.height,
-          }),
+          popoverRect: newPopoverRect,
           parentRect,
           boundaryRect,
           padding,
